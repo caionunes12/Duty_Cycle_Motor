@@ -41,12 +41,13 @@ pico_set_program_name(Duty_Cycle_Motor_PWM "Duty_Cycle_Motor_PWM")
 pico_set_program_version(Duty_Cycle_Motor_PWM "0.1")
 
 # Modify the below lines to enable/disable output over UART/USB
-pico_enable_stdio_uart(Duty_Cycle_Motor_PWM 1)
+pico_enable_stdio_uart(Duty_Cycle_Motor_PWM 0)
 pico_enable_stdio_usb(Duty_Cycle_Motor_PWM 1)
 
 # Add the standard library to the build
 target_link_libraries(Duty_Cycle_Motor_PWM
-        pico_stdlib)
+        pico_stdlib
+        hardware_pwm)
 
 # Add the standard include files to the build
 target_include_directories(Duty_Cycle_Motor_PWM PRIVATE
@@ -55,6 +56,7 @@ target_include_directories(Duty_Cycle_Motor_PWM PRIVATE
 
 # Add any user requested libraries
 target_link_libraries(Duty_Cycle_Motor_PWM 
+
         
         )
 

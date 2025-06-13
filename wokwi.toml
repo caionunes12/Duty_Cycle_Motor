@@ -1,0 +1,4 @@
+[wokwi]
+version = 1
+firmware = 'build/Duty_Cycle_Motor_PWM.hex'
+elf = 'build/Duty_Cycle_Motor_PWM.elf'
