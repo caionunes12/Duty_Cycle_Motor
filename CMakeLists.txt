@@ -47,7 +47,8 @@ pico_enable_stdio_usb(Duty_Cycle_Motor_PWM 1)
 # Add the standard library to the build
 target_link_libraries(Duty_Cycle_Motor_PWM
         pico_stdlib
-        hardware_pwm)
+        hardware_pwm
+        hardware_adc)
 
 # Add the standard include files to the build
 target_include_directories(Duty_Cycle_Motor_PWM PRIVATE

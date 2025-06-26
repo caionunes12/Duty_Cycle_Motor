@@ -1,60 +1,49 @@
-#include <stdio.h> //biblioteca padrão da linguagem C
-#include "pico/stdlib.h" //subconjunto central de bibliotecas do SDK Pico
-#include "hardware/pwm.h" //biblioteca para controlar o hardware de PWM
+#include <stdio.h>
+#include "pico/stdlib.h"
+#include "hardware/adc.h"
+#include "hardware/pwm.h"
 
-#define PWM_LED 12 //pino do LED conectado a GPIO como PWM
-const uint16_t WRAP_PERIOD = 4000; //valor máximo do contador - WRAP
-const float PWM_DIVISER = 4.0; //divisor do clock para o PWM
-const uint16_t LED_STEP = 200; //passo de incremento/decremento para o duty cycle do LED
-uint16_t led_level = 200; //nível inicial do pwm (duty cycle)
+#define VRX_PIN 26
+#define SERVO_PIN 13
 
-//função para configurar o módulo PWM
-void pwm_setup()
-{
-    gpio_set_function(PWM_LED, GPIO_FUNC_PWM); //habilitar o pino GPIO como PWM
+// Inicializa PWM para 50 Hz
+uint pwm_init_gpio(uint gpio) {
+    gpio_set_function(gpio, GPIO_FUNC_PWM);
 
-    uint slice = pwm_gpio_to_slice_num(PWM_LED); //obter o canal PWM da GPIO
-
-    pwm_set_clkdiv(slice, PWM_DIVISER); //define o divisor de clock do PWM
-
-    pwm_set_wrap(slice, WRAP_PERIOD); //definir o valor de wrap
-
-    pwm_set_gpio_level(PWM_LED, 100); //definir o cico de trabalho (duty cycle) do pwm
-
-    pwm_set_enabled(slice, true); //habilita o pwm no slice correspondente
+    uint slice_num = pwm_gpio_to_slice_num(gpio);
+    
+    // Clock base: 125 MHz / 125 = 1 MHz → 1 count = 1 µs
+    pwm_set_clkdiv(slice_num, 125.0f);
+    pwm_set_wrap(slice_num, 19999);  // 20ms período → 50 Hz
+    
+    pwm_set_enabled(slice_num, true);
+    return slice_num;
 }
 
+// Mapeia de uma faixa para outra
+uint16_t map_adc_to_pulse(uint16_t adc_value) {
+    return 500 + ((adc_value * (2400 - 500)) / 4095);
+}
 
-//função principal
-int main()
-{
-    stdio_init_all(); //inicializa o sistema padrão de I/O
-    
-    pwm_setup(); //configura o PWM
+int main() {
+    stdio_init_all();
+    adc_init();
+    adc_gpio_init(VRX_PIN);
+    uint slice = pwm_init_gpio(SERVO_PIN);
 
-    uint up_down = 1; //variável para controlar se o nível do LED aumenta ou diminui
+    // Começa em 90° (1470 µs)
+    pwm_set_gpio_level(SERVO_PIN, 1470);
 
-    //loop principal
     while (true) {
-
-        printf("Ciclo ativo:%d\n", led_level);//imprimir ciclo ativo do PWM - valor máximo é 2000
+        adc_select_input(0);
+        uint16_t adc_value = adc_read();
         
-        pwm_set_gpio_level(PWM_LED, led_level); //define o nível atual do PWM (duty cycle)
-
-        sleep_ms(1000); // Atraso de 1 segundo
-
-        if (up_down) 
-        {
-            led_level += LED_STEP; // Incrementa o nível do LED
-            if (led_level >= WRAP_PERIOD)
-                up_down = 0; // Muda direção para diminuir quando atingir o período máximo
-        }
-        else
-        {
-            led_level -= LED_STEP; // Decrementa o nível do LED
-            if (led_level <= LED_STEP)
-                up_down = 1; // Muda direção para aumentar quando atingir o mínimo
-        }
-
+        uint16_t pulse = map_adc_to_pulse(adc_value);
+        pwm_set_gpio_level(SERVO_PIN, pulse);
+        
+        printf("ADC: %u | Pulso: %u us\n", adc_value, pulse);
+        sleep_ms(100);
     }
+
+    return 0;
 }
