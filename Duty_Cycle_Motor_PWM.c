@@ -7,6 +7,7 @@
 #define SERVO_PIN 13
 
 // Inicializa PWM para 50 Hz
+
 uint pwm_init_gpio(uint gpio) {
     gpio_set_function(gpio, GPIO_FUNC_PWM);
 
@@ -46,4 +47,5 @@ int main() {
     }
 
     return 0;
+
 }
