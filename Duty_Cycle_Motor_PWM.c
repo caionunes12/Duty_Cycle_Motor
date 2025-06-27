@@ -5,7 +5,7 @@
 
 #define VRX_PIN 26
 #define SERVO_PIN 13
-
+//test
 // Inicializa PWM para 50 Hz
 
 uint pwm_init_gpio(uint gpio) {
